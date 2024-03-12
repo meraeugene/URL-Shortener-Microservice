@@ -33,41 +33,42 @@ app.get('/', function(req, res) {
 });
 
 // Your first API endpoint
-app.post('/api/shorturl/new', async function (req,res){
-  const url = req.body.url
-  const urlCode = shortid.generate()
+app.post('/api/shorturl', async function (req, res) {
+  const url = req.body.url;
+  const urlCode = shortid.generate();
 
-  if(!validUrl.isUri(url)){
-    res.status(401).json({
-      error: 'invalid URL'
-    })
-  } else {
+  httpRegex = /^(http|https)(:\/\/)/;
+  
+  if (!httpRegex.test(url)) {
+    return res.json({ error: 'invalid url' })}
+
+
     try {
       let findOne = await URL.findOne({
         original_url: url
-      })
-      if(findOne){
+      });
+      if (findOne) {
         res.json({
           original_url: findOne.original_url,
-          short_url : findOne.short_url
-        })
+          short_url: findOne.short_url
+        });
       } else {
         findOne = new URL({
           original_url: url,
           short_url: urlCode,
-        })
-        await findOne.save()
+        });
+        await findOne.save();
         res.json({
           original_url: findOne.original_url,
           short_url: findOne.short_url
-        })
+        });
       }
     } catch (err) {
-      console.log(err)
-      res.status(500).json("Server error")
+      console.log(err);
+      res.status(500).json("Server error");
     }
-  }
-})
+  
+});
 
 
 app.get('/api/shorturl/:short_url?', async function(req, res) {
